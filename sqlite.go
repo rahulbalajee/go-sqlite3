@@ -1,4 +1,30 @@
+/*
+The package works on two tables on a SQLite database
+
+The tables are:
+  - Users
+  - Userdata
+
+The tables are designed as follows:
+
+		CREATE TABLE Users (
+	        ID INTEGER PRIMARY KEY,
+	        Username TEXT
+	    );
+
+	    CREATE TABLE Userdata (
+	        UserID INTEGER NOT NULL,
+	        Name TEXT,
+	        Surname TEXT,
+	        Description TEXT
+	    );
+		This is rendered as code
+
+This is not rendered as code
+*/
 package sqlite
+
+// BUG(1): Use context.Context when running DB queries
 
 import (
 	"database/sql"
@@ -8,10 +34,18 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+/*
+This global variable holds the Database filepath
+
+	Filename: Is the filepath to the database file
+*/
 var (
 	Filename = ""
 )
 
+// The Userdata structure is for holding full user data
+// from the Userdata table and the Username from the
+// Users table
 type Userdata struct {
 	ID          int
 	Username    string
@@ -20,6 +54,8 @@ type Userdata struct {
 	Description string
 }
 
+// openConnection() is for opening the SQLite3 connection
+// in order to be used by the other functions of the package.
 func openConnection() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", Filename)
 	if err != nil {
@@ -28,6 +64,8 @@ func openConnection() (*sql.DB, error) {
 	return db, nil
 }
 
+// exists() returns true if the username exists in DB
+// otherwise returns false
 func exists(db *sql.DB, username string) (bool, error) {
 	username = strings.ToLower(username)
 
@@ -44,6 +82,9 @@ func exists(db *sql.DB, username string) (bool, error) {
 	return true, nil
 }
 
+// AddUser adds a new user to the database
+//
+// Returns error in case of failure
 func AddUser(u Userdata) error {
 	u.Username = strings.ToLower(u.Username)
 
@@ -79,6 +120,12 @@ func AddUser(u Userdata) error {
 	return nil
 }
 
+/*
+DeleteUser deletes an existing user if the user exists.
+It requires the User ID of the user to be deleted.
+
+It returns error
+*/
 func DeleteUser(id int) error {
 	db, err := openConnection()
 	if err != nil {
@@ -99,6 +146,9 @@ func DeleteUser(id int) error {
 	return nil
 }
 
+// ListUsers() lists all users in the database.
+//
+// Returns a slice of Userdata to the calling function.
 func ListUsers() ([]Userdata, error) {
 	db, err := openConnection()
 	if err != nil {
@@ -135,6 +185,10 @@ func ListUsers() ([]Userdata, error) {
 	return data, nil
 }
 
+/*
+UpdateUser() is for updating an existing user
+given a Userdata structure.
+*/
 func UpdateUser(u Userdata) error {
 	u.Username = strings.ToLower(u.Username)
 
